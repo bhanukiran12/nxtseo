@@ -9,8 +9,8 @@
 6. ✅ Create nginx.conf
 7. ✅ Create .dockerignore
 8. ✅ Create .env.example
-9. ✅ Tested: docker compose up --build
-10. ✅ Complete & demo
+9. ✅ Fixed Docker & .gitignore added
+10. ✅ Ready: docker compose up --build works!
 
 **All steps complete! 🎉**
 
