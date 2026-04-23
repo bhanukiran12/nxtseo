@@ -1,24 +1,20 @@
-# Standalone NxtSEO Dockerfile (dev mode)
-FROM node:20
+# Standalone NxtSEO (use docker-compose instead!)
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json client/package*.json server/package*.json ./
+# Client deps & build
+COPY client/package*.json ./client/
+RUN cd client && npm ci && cd ..
 
-# Install deps
-RUN npm install && cd client && npm install && cd ../server && npm install
+# Server deps
+COPY server/package*.json ./server/
+RUN cd server && npm ci --only=production && cd ..
 
-# Copy source
+# Copy code
 COPY . .
 
-# Expose ports
-EXPOSE 80 5000 27017
+EXPOSE 5000
+CMD ["sh", "-c", "cd server && npm start"]
 
-# Multi-process with wait script
-CMD ["sh", "-c", "\
-  docker-entrypoint.sh mongod --bind_ip_all & \
-  sleep 10 && \
-  cd server && npm start & \
-  cd ../client && npm run dev"]
 
