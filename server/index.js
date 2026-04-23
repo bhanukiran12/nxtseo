@@ -21,16 +21,27 @@ app.use(session({
 
 // MongoDB Connection with retry
 const connectDB = async (retries = 5) => {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.error('❌ MONGODB_URI is missing in environment variables!');
+    return;
+  }
+
+  const isSrv = uri.startsWith('mongodb+srv');
+  
   for (let i = 0; i < retries; i++) {
     try {
-      await mongoose.connect(process.env.MONGODB_URI, {
+      await mongoose.connect(uri, {
         serverSelectionTimeoutMS: 10000,
         socketTimeoutMS: 45000,
       });
-      console.log('✅ MongoDB Connected');
+      console.log('✅ MongoDB Connected (SRV:', isSrv, ')');
       return;
     } catch (err) {
       console.error(`❌ MongoDB attempt ${i + 1} failed:`, err.message);
+      if (err.message.includes('selection timed out')) {
+        console.log('   TIP: Check if your IP (0.0.0.0/0) is whitelisted in MongoDB Atlas.');
+      }
       if (i < retries - 1) {
         console.log(`   Retrying in 3s...`);
         await new Promise(r => setTimeout(r, 3000));
@@ -50,9 +61,19 @@ app.use('/api/gsc', require('./routes/gsc'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 
-// Health check
+// Health check with diagnostics
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'NxtSEO Server Running', target: process.env.TARGET_URL });
+  const dbStatus = mongoose.connection.readyState === 1 ? 'online' : 'offline';
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date(),
+    services: {
+      database: dbStatus,
+      gemini: process.env.GEMINI_API_KEY ? 'configured' : 'missing',
+      google: process.env.GOOGLE_CLIENT_ID ? 'configured' : 'missing'
+    },
+    target: process.env.TARGET_URL 
+  });
 });
 
 app.listen(PORT, () => {

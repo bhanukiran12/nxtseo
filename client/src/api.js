@@ -33,8 +33,11 @@ export const getAuthUrl = () => api.get('/auth/google');
 export const getAuthStatus = () => api.get('/auth/status');
 export const logout = () => api.post('/auth/logout');
 
+export const verifyBacklink = (id) => api.post(`/backlinks/${id}/verify`);
+
 // Dashboard
 export const getDashboard = () => api.get('/dashboard');
+export const getHealth = () => api.get('/health');
 
 // Settings
 export const getSettings = () => api.get('/settings');

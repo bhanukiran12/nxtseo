@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { getBacklinks, addBacklink, updateBacklink, deleteBacklink } from '../api';
-import { Plus, Trash2, ExternalLink, Check } from 'lucide-react';
+import { verifyBacklink, getBacklinks, addBacklink, updateBacklink, deleteBacklink } from '../api';
+import { Plus, Trash2, ExternalLink, Check, ShieldCheck, AlertOctagon, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STATUSES = ['sent', 'submitted', 'published'];
@@ -10,6 +9,7 @@ export default function BacklinkTracker() {
   const [backlinks, setBacklinks] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
+  const [verifying, setVerifying] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [form, setForm] = useState({ platform: 'Medium', blogUrl: '', blogTitle: '', anchorText: '', status: 'sent', notes: '' });
@@ -46,6 +46,20 @@ export default function BacklinkTracker() {
     } catch { toast.error('Update failed'); }
   };
 
+  const handleVerify = async (id) => {
+    setVerifying(id);
+    try {
+      const res = await verifyBacklink(id);
+      if (res.data.isLive) {
+        toast.success('Backlink is LIVE and verified!');
+      } else {
+        toast.error('Backlink not found on the page');
+      }
+      fetchBacklinks();
+    } catch { toast.error('Verification failed'); }
+    finally { setVerifying(null); }
+  };
+
   const handleDelete = async (id) => {
     if (!confirm('Delete this backlink?')) return;
     try {
@@ -60,7 +74,7 @@ export default function BacklinkTracker() {
       <div className="page-header flex-between">
         <div>
           <h1 className="page-title">Backlink Tracker</h1>
-          <p className="page-subtitle">Tracking all backlinks pointing to <span className="text-cyan">ccbp.in/intensive</span></p>
+          <p className="page-subtitle">Monitoring link integrity for <span className="text-cyan">ccbp.in/intensive</span></p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowAdd(!showAdd)}>
           <Plus size={14}/> Add Backlink
@@ -68,12 +82,13 @@ export default function BacklinkTracker() {
       </div>
 
       {/* Stats */}
-      <div className="stats-grid" style={{ gridTemplateColumns:'repeat(4, 1fr)', marginBottom:20 }}>
+      <div className="stats-grid" style={{ gridTemplateColumns:'repeat(5, 1fr)', marginBottom:20 }}>
         {[
           { label:'Total', value: stats.total || 0, color:'cyan' },
           { label:'Sent', value: stats.sent || 0, color:'orange' },
           { label:'Submitted', value: stats.submitted || 0, color:'purple' },
           { label:'Published', value: stats.published || 0, color:'green' },
+          { label:'Live', value: stats.live || 0, color:'cyan' },
         ].map(s => (
           <div key={s.label} className={`stat-card ${s.color}`} style={{ padding:'16px 20px' }}>
             <div className="stat-value" style={{ fontSize:26 }}>{s.value}</div>
@@ -151,10 +166,9 @@ export default function BacklinkTracker() {
                 <tr>
                   <th>Platform</th>
                   <th>Blog / Page</th>
+                  <th>Verification</th>
                   <th>Anchor Text</th>
-                  <th>Target Link</th>
                   <th>Status</th>
-                  <th>Date</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -164,12 +178,29 @@ export default function BacklinkTracker() {
                     <td><span className={`badge badge-${bl.platform?.toLowerCase()}`}>{bl.platform}</span></td>
                     <td>
                       <div style={{ maxWidth:200 }}>
-                        <div style={{ fontSize:12, color:'var(--text-primary)', marginBottom:2 }}>{bl.blogTitle || '—'}</div>
-                        {bl.blogUrl && <a href={bl.blogUrl} target="_blank" rel="noreferrer" style={{ fontSize:11, color:'var(--cyan)', display:'flex', alignItems:'center', gap:3 }}><ExternalLink size={10}/> View</a>}
+                        <div style={{ fontSize:12, color:'var(--text-primary)', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{bl.blogTitle || '—'}</div>
+                        {bl.blogUrl && <a href={bl.blogUrl} target="_blank" rel="noreferrer" style={{ fontSize:11, color:'var(--cyan)', display:'flex', alignItems:'center', gap:3, textDecoration:'none' }}><ExternalLink size={10}/> View Page</a>}
                       </div>
                     </td>
-                    <td><span style={{ color:'var(--cyan)', fontSize:12 }}>"{bl.anchorText}"</span></td>
-                    <td><span style={{ fontSize:11, color:'var(--text-muted)' }}>ccbp.in/intensive</span></td>
+                    <td>
+                      {bl.verified ? (
+                        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                          {bl.isLive ? (
+                            <div className="flex-center gap-4" style={{ color: 'var(--green)', fontSize: 11, fontWeight: 600 }}>
+                              <ShieldCheck size={14} /> LIVE
+                            </div>
+                          ) : (
+                            <div className="flex-center gap-4" style={{ color: 'var(--red)', fontSize: 11, fontWeight: 600 }}>
+                              <AlertOctagon size={14} /> MISSING
+                            </div>
+                          )}
+                          <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>{new Date(bl.lastChecked).toLocaleDateString()}</div>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize:11, color: 'var(--text-muted)' }}>Not verified</span>
+                      )}
+                    </td>
+                    <td><span style={{ color:'var(--cyan)', fontSize:12, fontWeight:500 }}>"{bl.anchorText}"</span></td>
                     <td>
                       <select
                         value={bl.status}
@@ -179,9 +210,18 @@ export default function BacklinkTracker() {
                         {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </td>
-                    <td style={{ fontSize:11, color:'var(--text-muted)' }}>{new Date(bl.createdAt).toLocaleDateString('en-IN')}</td>
                     <td>
-                      <button className="btn btn-danger btn-sm btn-icon" onClick={() => handleDelete(bl._id)}><Trash2 size={12}/></button>
+                      <div className="flex gap-8">
+                        <button 
+                          className="btn btn-secondary btn-sm btn-icon" 
+                          title="Verify Status"
+                          disabled={verifying === bl._id || !bl.blogUrl}
+                          onClick={() => handleVerify(bl._id)}
+                        >
+                          <RefreshCw size={12} className={verifying === bl._id ? 'spinner' : ''} />
+                        </button>
+                        <button className="btn btn-danger btn-sm btn-icon" onClick={() => handleDelete(bl._id)}><Trash2 size={12}/></button>
+                      </div>
                     </td>
                   </tr>
                 ))}

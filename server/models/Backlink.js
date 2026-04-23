@@ -7,6 +7,9 @@ const backlinkSchema = new mongoose.Schema({
   targetLink: { type: String, default: 'https://www.ccbp.in/intensive' },
   anchorText: { type: String, required: true },
   status: { type: String, enum: ['sent', 'submitted', 'published'], default: 'sent' },
+  verified: { type: Boolean, default: false },
+  lastChecked: { type: Date },
+  isLive: { type: Boolean, default: false },
   notes: { type: String },
   domainAuthority: { type: Number },
   blogRef: { type: mongoose.Schema.Types.ObjectId, ref: 'Blog' }

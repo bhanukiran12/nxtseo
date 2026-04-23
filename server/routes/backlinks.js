@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Backlink = require('../models/Backlink');
+const { verifyBacklink } = require('../services/backlinkService');
+const cron = require('node-cron');
 
 // Get all backlinks
 router.get('/', async (req, res) => {
@@ -18,13 +20,34 @@ router.get('/', async (req, res) => {
       total: await Backlink.countDocuments(),
       sent: await Backlink.countDocuments({ status: 'sent' }),
       submitted: await Backlink.countDocuments({ status: 'submitted' }),
-      published: await Backlink.countDocuments({ status: 'published' })
+      published: await Backlink.countDocuments({ status: 'published' }),
+      live: await Backlink.countDocuments({ isLive: true })
     };
 
     res.json({ backlinks, stats });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Verify backlink manually
+router.post('/:id/verify', async (req, res) => {
+  try {
+    const result = await verifyBacklink(req.params.id);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Daily Cron Job for verification (runs at midnight)
+cron.schedule('0 0 * * *', async () => {
+  console.log('⏳ Running daily backlink verification...');
+  const publishedBacklinks = await Backlink.find({ status: 'published', blogUrl: { $exists: true, $ne: '' } });
+  for (const bl of publishedBacklinks) {
+    await verifyBacklink(bl._id);
+  }
+  console.log(`✅ Verified ${publishedBacklinks.length} backlinks.`);
 });
 
 // Add backlink manually
