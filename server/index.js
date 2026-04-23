@@ -61,6 +61,10 @@ app.use('/api/gsc', require('./routes/gsc'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 
+// Serve static files from the React app
+const clientDistPath = path.join(__dirname, '../client/dist');
+app.use(express.static(clientDistPath));
+
 // Health check with diagnostics
 app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'online' : 'offline';
@@ -74,6 +78,11 @@ app.get('/api/health', (req, res) => {
     },
     target: process.env.TARGET_URL 
   });
+});
+
+// The "catchall" handler: for any request that doesn't match one above, send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientDistPath, 'index.html'));
 });
 
 app.listen(PORT, () => {
