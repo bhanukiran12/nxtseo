@@ -20,7 +20,7 @@ app.use(session({
 }));
 
 // MongoDB Connection with retry
-mongoose.set('bufferCommands', false); // Disable buffering so errors show up immediately
+mongoose.set('bufferCommands', true); // Allow commands to buffer while connecting
 const connectDB = async (retries = 5) => {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
@@ -43,13 +43,19 @@ const connectDB = async (retries = 5) => {
       if (err.message.includes('selection timed out')) {
         console.log('   TIP: Check if your IP (0.0.0.0/0) is whitelisted in MongoDB Atlas.');
       }
+      if (err.message.includes('ECONNREFUSED')) {
+        console.log('   TIP: The database server might be down or unreachable.');
+      }
+      if (err.message.includes('Authentication failed')) {
+        console.log('   TIP: Check your MONGODB_URI username and password.');
+      }
       if (i < retries - 1) {
         console.log(`   Retrying in 3s...`);
         await new Promise(r => setTimeout(r, 3000));
       }
     }
   }
-  console.error('❌ MongoDB connection failed after all retries');
+  console.error('❌ MongoDB connection failed after all retries. The app will return 500 errors for most requests.');
 };
 connectDB();
 

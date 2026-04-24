@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { generateBlog } from '../api';
 import { Sparkles, RefreshCw, Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -172,7 +173,7 @@ export default function BlogGenerator() {
                 <button className="btn btn-secondary" onClick={handleCopy}>
                   {copied ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy Markdown</>}
                 </button>
-                <a href={`/blogs/${blog._id}`} className="btn btn-primary">Open Editor →</a>
+                <Link to={`/blogs/${blog._id}`} className="btn btn-primary">Open Editor →</Link>
               </div>
             </div>
           )}

@@ -24,7 +24,7 @@ services:
     build: ./server
     restart: always
     environment:
-      MONGODB_URI: mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/${MONGO_DB:-nxtseo}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://${MONGO_ROOT_USER:-root}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/${MONGO_DB:-nxtseo}}
       NODE_ENV: production
       SESSION_SECRET: ${SESSION_SECRET}
       GEMINI_API_KEY: ${GEMINI_API_KEY}

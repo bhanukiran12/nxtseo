@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getBlogs, deleteBlog } from '../api';
 import { Trash2, ExternalLink, Eye, PenLine } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const PLATFORMS = ['all', 'none', 'medium', 'linkedin', 'devto', 'hashnode'];
@@ -48,7 +48,7 @@ export default function BlogList() {
           <h1 className="page-title">My Blogs</h1>
           <p className="page-subtitle">{blogs.length} blogs generated for ccbp.in/intensive</p>
         </div>
-        <a href="/generate" className="btn btn-primary"><PenLine size={14}/> New Blog</a>
+        <Link to="/generate" className="btn btn-primary"><PenLine size={14}/> New Blog</Link>
       </div>
 
       {/* Filters */}
@@ -74,7 +74,7 @@ export default function BlogList() {
           <div className="empty-state">
             <div className="empty-state-icon">📝</div>
             <h3>No blogs yet</h3>
-            <p><a href="/generate" className="text-cyan">Generate your first SEO blog →</a></p>
+            <p><Link to="/generate" className="text-cyan">Generate your first SEO blog →</Link></p>
           </div>
         </div>
       ) : (

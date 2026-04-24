@@ -106,7 +106,7 @@ async function generateWithAI(prompt) {
   // 1. Try Gemini first
   if (geminiKey) {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    const models = GEMINI_FALLBACK_MODELS.filter((v, i, a) => a.indexOf(v) === i);
+    const models = [geminiModel, ...GEMINI_FALLBACK_MODELS].filter((v, i, a) => a.indexOf(v) === i);
     
     for (const modelName of models) {
       try {

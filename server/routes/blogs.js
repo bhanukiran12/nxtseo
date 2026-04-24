@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Blog = require('../models/Blog');
 const Backlink = require('../models/Backlink');
@@ -10,6 +11,7 @@ const {
 
 // Generate blog with AI
 router.post('/generate', async (req, res) => {
+  console.log(`[BLOGS] POST /generate called with topic: ${req.body?.topic}`);
   try {
     const { topic, keywords, tone } = req.body;
     if (!topic) return res.status(400).json({ error: 'Topic is required' });
@@ -79,7 +81,11 @@ router.get('/', async (req, res) => {
 
 // Get single blog
 router.get('/:id', async (req, res) => {
+  console.log(`[BLOGS] GET /:id called with ID: ${req.params.id}`);
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid Blog ID format' });
+    }
     const blog = await Blog.findById(req.params.id);
     if (!blog) return res.status(404).json({ error: 'Blog not found' });
     res.json(blog);
