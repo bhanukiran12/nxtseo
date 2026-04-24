@@ -15,9 +15,11 @@ router.get('/google/callback', async (req, res) => {
     const userInfo = await getUserInfo(tokens);
     req.session.googleTokens = tokens;
     req.session.userInfo = userInfo;
-    res.redirect(`http://localhost:5173/settings?connected=true&email=${encodeURIComponent(userInfo.email)}`);
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    res.redirect(`${clientUrl}/settings?connected=true&email=${encodeURIComponent(userInfo.email)}`);
   } catch (err) {
-    res.redirect(`http://localhost:5173/settings?error=auth_failed`);
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    res.redirect(`${clientUrl}/settings?error=auth_failed`);
   }
 });
 
