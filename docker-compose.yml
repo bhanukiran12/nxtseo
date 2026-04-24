@@ -28,6 +28,7 @@ services:
       NODE_ENV: production
       SESSION_SECRET: ${SESSION_SECRET}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-pro}
       GSC_CLIENT_ID: ${GSC_CLIENT_ID}
       GSC_CLIENT_SECRET: ${GSC_CLIENT_SECRET}
       GMAIL_CLIENT_ID: ${GMAIL_CLIENT_ID}
@@ -79,4 +80,3 @@ volumes:
 networks:
   nxtseo-net:
     driver: bridge
-
