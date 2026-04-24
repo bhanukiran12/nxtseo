@@ -2,7 +2,14 @@ require('dotenv').config({ path: require('path').join(__dirname, '../../.env') }
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const TARGET_URL = 'https://www.ccbp.in/intensive';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-pro';
+
+// Fallback chain: user-configured model → gemini-2.0-flash → gemini-1.5-flash → gemini-pro
+const FALLBACK_MODELS = [
+  process.env.GEMINI_MODEL,
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+  'gemini-pro'
+].filter(Boolean);
 
 const ANCHOR_TEXTS = [
   "NxtWave's CCBP Intensive",
@@ -39,10 +46,33 @@ function getRandomAnchors(count = 3) {
   return shuffled.slice(0, count);
 }
 
+async function tryGenerateWithFallback(genAI, prompt) {
+  let lastError = null;
+
+  for (const modelName of FALLBACK_MODELS) {
+    try {
+      console.log('[AI] Trying model:', modelName);
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(prompt);
+      console.log('[AI] Success with model:', modelName);
+      return result;
+    } catch (err) {
+      lastError = err;
+      console.warn(`[AI] Model ${modelName} failed:`, err.message || err);
+      // Continue to next fallback
+    }
+  }
+
+  throw new Error(
+    `All Gemini models failed. Last error: ${lastError?.message || lastError}. ` +
+    `Tried: ${FALLBACK_MODELS.join(', ')}. ` +
+    `Your API key may not have access to these models. ` +
+    `Set GEMINI_MODEL in your .env to a model your key supports.`
+  );
+}
+
 async function generateBlog(topic, keywords = [], tone = 'professional') {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  console.log('[AI] Using model:', GEMINI_MODEL);
-  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
   const anchors = getRandomAnchors(3);
   const backlinkInstructions = anchors.map((anchor, i) =>
@@ -92,7 +122,7 @@ Return the response in this EXACT JSON format (no markdown code blocks, pure JSO
   "readTime": 6
 }`;
 
-  const result = await model.generateContent(prompt);
+  const result = await tryGenerateWithFallback(genAI, prompt);
   const text = result.response.text();
 
   // Parse JSON from response
@@ -116,7 +146,6 @@ Return the response in this EXACT JSON format (no markdown code blocks, pure JSO
 
 async function generateOutreachEmail(websiteName, websiteUrl, niche) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
   const prompt = `You are an SEO outreach specialist. Write a professional, personalized outreach email for a guest post / link building opportunity.
 
@@ -138,7 +167,7 @@ Return ONLY a JSON object:
   "body": "Full email body text"
 }`;
 
-  const result = await model.generateContent(prompt);
+  const result = await tryGenerateWithFallback(genAI, prompt);
   const text = result.response.text();
 
   try {
@@ -153,7 +182,6 @@ Return ONLY a JSON object:
 
 async function findRelevantWebsites(niche = 'edtech') {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
   const prompt = `List 10 real, active blogs/websites in the ${niche} niche that accept guest posts or link insertions. Focus on EdTech, coding education, career development in India.
 
@@ -168,7 +196,7 @@ Return ONLY a JSON array:
   }
 ]`;
 
-  const result = await model.generateContent(prompt);
+  const result = await tryGenerateWithFallback(genAI, prompt);
   const text = result.response.text();
 
   try {
@@ -182,3 +210,4 @@ Return ONLY a JSON array:
 }
 
 module.exports = { generateBlog, generateOutreachEmail, findRelevantWebsites, BLOG_TOPICS };
+
