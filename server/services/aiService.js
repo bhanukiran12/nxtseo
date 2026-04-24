@@ -2,7 +2,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../../.env') }
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const TARGET_URL = 'https://www.ccbp.in/intensive';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash-latest';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-pro';
 
 const ANCHOR_TEXTS = [
   "NxtWave's CCBP Intensive",
@@ -41,6 +41,7 @@ function getRandomAnchors(count = 3) {
 
 async function generateBlog(topic, keywords = [], tone = 'professional') {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  console.log('[AI] Using model:', GEMINI_MODEL);
   const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
   const anchors = getRandomAnchors(3);
