@@ -8,6 +8,11 @@ export default function Settings() {
     DEVTO_API_KEY: '',
     HASHNODE_API_KEY: '',
     HASHNODE_PUBLICATION_ID: '',
+    OLLAMA_API_KEY: '',
+    OLLAMA_BASE_URL: 'http://localhost:11434',
+    OLLAMA_MODEL: 'llama3',
+    GEMINI_API_KEY: '',
+    GEMINI_MODEL: 'gemini-2.0-flash',
   });
   const [saving, setSaving] = useState(false);
   const [authStatus, setAuthStatus] = useState({ connected: false, user: null });
@@ -148,16 +153,49 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Ollama Info */}
+        <div className="card">
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+            <BarChart2 size={16} color="var(--purple)"/>
+            <h3 className="card-title mb-0">Ollama AI (Alternative)</h3>
+          </div>
+          <p style={{ fontSize:13, color:'var(--text-secondary)', marginBottom:12 }}>
+            Use a local or hosted Ollama instance when Gemini is unavailable.
+          </p>
+          <div className="form-group">
+            <label className="form-label">Ollama API Key (Optional)</label>
+            <input className="form-input" type="password" value={settings.OLLAMA_API_KEY || ''} onChange={e => setSettings({...settings, OLLAMA_API_KEY: e.target.value})} placeholder="API key if required by your provider"/>
+          </div>
+          <div className="form-row">
+            <div className="form-group mb-0">
+              <label className="form-label">Base URL</label>
+              <input className="form-input" value={settings.OLLAMA_BASE_URL || ''} onChange={e => setSettings({...settings, OLLAMA_BASE_URL: e.target.value})} placeholder="http://localhost:11434"/>
+            </div>
+            <div className="form-group mb-0">
+              <label className="form-label">Model</label>
+              <input className="form-input" value={settings.OLLAMA_MODEL || ''} onChange={e => setSettings({...settings, OLLAMA_MODEL: e.target.value})} placeholder="llama3"/>
+            </div>
+          </div>
+        </div>
+
         {/* Gemini info */}
         <div className="card">
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
             <BarChart2 size={16} color="var(--cyan)"/>
-            <h3 className="card-title mb-0">AI Model</h3>
+            <h3 className="card-title mb-0">Primary AI (Gemini)</h3>
             <span className="badge badge-published">Active</span>
           </div>
-          <p style={{ fontSize:13, color:'var(--text-secondary)' }}>
-            Using <strong style={{ color:'var(--text-primary)' }}>Google Gemini 1.5 Flash</strong> for blog generation and outreach emails. Key configured in server .env.
+          <p style={{ fontSize:13, color:'var(--text-secondary)', marginBottom:12 }}>
+            Configure your Google Gemini AI settings.
           </p>
+          <div className="form-group">
+            <label className="form-label">Gemini API Key</label>
+            <input className="form-input" type="password" value={settings.GEMINI_API_KEY || ''} onChange={e => setSettings({...settings, GEMINI_API_KEY: e.target.value})} placeholder="AIzaSy..."/>
+          </div>
+          <div className="form-group mb-0">
+            <label className="form-label">Model</label>
+            <input className="form-input" value={settings.GEMINI_MODEL || ''} onChange={e => setSettings({...settings, GEMINI_MODEL: e.target.value})} placeholder="gemini-2.0-flash"/>
+          </div>
         </div>
 
         <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ alignSelf:'flex-start' }}>
