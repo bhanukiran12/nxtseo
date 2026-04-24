@@ -12,7 +12,7 @@ export default function Settings() {
     OLLAMA_BASE_URL: 'http://localhost:11434',
     OLLAMA_MODEL: 'llama3',
     GEMINI_API_KEY: '',
-    GEMINI_MODEL: 'gemini-2.0-flash',
+    GEMINI_MODEL: 'gemma-3-4b-it',
   });
   const [saving, setSaving] = useState(false);
   const [authStatus, setAuthStatus] = useState({ connected: false, user: null });
@@ -194,7 +194,7 @@ export default function Settings() {
           </div>
           <div className="form-group mb-0">
             <label className="form-label">Model</label>
-            <input className="form-input" value={settings.GEMINI_MODEL || ''} onChange={e => setSettings({...settings, GEMINI_MODEL: e.target.value})} placeholder="gemini-2.0-flash"/>
+            <input className="form-input" value={settings.GEMINI_MODEL || ''} onChange={e => setSettings({...settings, GEMINI_MODEL: e.target.value})} placeholder="gemma-3-4b-it"/>
           </div>
         </div>
 

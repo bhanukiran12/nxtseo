@@ -7,9 +7,10 @@ const TARGET_URL = 'https://www.ccbp.in/intensive';
 // Fallback chain for Gemini
 const GEMINI_FALLBACK_MODELS = [
   process.env.GEMINI_MODEL,
+  'gemma-3-4b-it',
+  'gemini-3-flash-preview',
   'gemini-2.0-flash',
-  'gemini-flash-latest',
-  'gemini-pro-latest'
+  'gemini-flash-latest'
 ].filter(Boolean);
 
 const ANCHOR_TEXTS = [
@@ -105,7 +106,7 @@ async function generateWithAI(prompt) {
   // 1. Try Gemini first
   if (geminiKey) {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    const models = [geminiModel, 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-pro-latest'].filter((v, i, a) => a.indexOf(v) === i);
+    const models = GEMINI_FALLBACK_MODELS.filter((v, i, a) => a.indexOf(v) === i);
     
     for (const modelName of models) {
       try {
