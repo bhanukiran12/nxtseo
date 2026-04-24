@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { verifyBacklink, getBacklinks, addBacklink, updateBacklink, deleteBacklink } from '../api';
 import { Plus, Trash2, ExternalLink, Check, ShieldCheck, AlertOctagon, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
