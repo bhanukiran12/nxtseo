@@ -29,3 +29,15 @@ After Google OAuth success, the backend hardcodes `http://localhost:5173/setting
 
 **All fix steps complete! 🎉**
 
+---
+
+## 🤖 Fix: Gemini Model 404 Error
+
+### Problem
+`gemini-1.5-flash` returned a 404 Not Found from the Generative Language API.
+
+### Files Edited
+- [x] `server/services/aiService.js` — replaced hardcoded model with `GEMINI_MODEL` env variable (defaults to `gemini-1.5-flash-latest`)
+
+**All fix steps complete! 🎉**
+

@@ -2,6 +2,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../../.env') }
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const TARGET_URL = 'https://www.ccbp.in/intensive';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash-latest';
 
 const ANCHOR_TEXTS = [
   "NxtWave's CCBP Intensive",
@@ -40,7 +41,7 @@ function getRandomAnchors(count = 3) {
 
 async function generateBlog(topic, keywords = [], tone = 'professional') {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
   const anchors = getRandomAnchors(3);
   const backlinkInstructions = anchors.map((anchor, i) =>
@@ -114,7 +115,7 @@ Return the response in this EXACT JSON format (no markdown code blocks, pure JSO
 
 async function generateOutreachEmail(websiteName, websiteUrl, niche) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
   const prompt = `You are an SEO outreach specialist. Write a professional, personalized outreach email for a guest post / link building opportunity.
 
@@ -151,7 +152,7 @@ Return ONLY a JSON object:
 
 async function findRelevantWebsites(niche = 'edtech') {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
   const prompt = `List 10 real, active blogs/websites in the ${niche} niche that accept guest posts or link insertions. Focus on EdTech, coding education, career development in India.
 
