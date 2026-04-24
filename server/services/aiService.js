@@ -3,12 +3,12 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const TARGET_URL = 'https://www.ccbp.in/intensive';
 
-// Fallback chain: user-configured model → gemini-2.0-flash → gemini-1.5-flash → gemini-pro
+// Fallback chain: user-configured model → gemini-2.0-flash → gemini-flash-latest → gemini-pro-latest
 const FALLBACK_MODELS = [
   process.env.GEMINI_MODEL,
   'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-pro'
+  'gemini-flash-latest',
+  'gemini-pro-latest'
 ].filter(Boolean);
 
 const ANCHOR_TEXTS = [
