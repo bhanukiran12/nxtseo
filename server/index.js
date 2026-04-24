@@ -20,6 +20,7 @@ app.use(session({
 }));
 
 // MongoDB Connection with retry
+mongoose.set('bufferCommands', false); // Disable buffering so errors show up immediately
 const connectDB = async (retries = 5) => {
   const uri = process.env.MONGODB_URI;
   if (!uri) {

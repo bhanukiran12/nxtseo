@@ -51,10 +51,15 @@ function getRandomAnchors(count = 3) {
  * Call Ollama API
  */
 async function callOllama(prompt) {
-  // Get settings from DB or env
-  const dbSettings = await Settings.find({ key: { $in: ['OLLAMA_BASE_URL', 'OLLAMA_MODEL', 'OLLAMA_API_KEY'] } });
-  const settingsMap = {};
-  dbSettings.forEach(s => { settingsMap[s.key] = s.value; });
+  // Get settings from DB (with short timeout) or env
+  let settingsMap = {};
+  try {
+    const dbSettings = await Settings.find({ key: { $in: ['OLLAMA_BASE_URL', 'OLLAMA_MODEL', 'OLLAMA_API_KEY'] } })
+      .maxTimeMS(2000); // Don't wait too long if DB is down
+    dbSettings.forEach(s => { settingsMap[s.key] = s.value; });
+  } catch (dbErr) {
+    console.warn('[AI] Could not fetch Ollama settings from DB (using env):', dbErr.message);
+  }
 
   const baseUrl = settingsMap['OLLAMA_BASE_URL'] || process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
   const model = settingsMap['OLLAMA_MODEL'] || process.env.OLLAMA_MODEL || 'llama3';
@@ -73,7 +78,7 @@ async function callOllama(prompt) {
     prompt: prompt,
     stream: false,
     format: 'json'
-  }, { headers, timeout: 90000 }); // Longer timeout for local LLMs
+  }, { headers, timeout: 90000 });
 
   return response.data.response;
 }
@@ -84,10 +89,15 @@ async function callOllama(prompt) {
 async function generateWithAI(prompt) {
   let lastError = null;
 
-  // Get all AI settings from DB
-  const dbSettings = await Settings.find({ key: { $in: ['GEMINI_API_KEY', 'GEMINI_MODEL', 'OLLAMA_API_KEY', 'OLLAMA_BASE_URL', 'OLLAMA_MODEL'] } });
-  const settingsMap = {};
-  dbSettings.forEach(s => { settingsMap[s.key] = s.value; });
+  // Get all AI settings from DB (with short timeout) or env
+  let settingsMap = {};
+  try {
+    const dbSettings = await Settings.find({ key: { $in: ['GEMINI_API_KEY', 'GEMINI_MODEL', 'OLLAMA_API_KEY', 'OLLAMA_BASE_URL', 'OLLAMA_MODEL'] } })
+      .maxTimeMS(2000);
+    dbSettings.forEach(s => { settingsMap[s.key] = s.value; });
+  } catch (dbErr) {
+    console.warn('[AI] Could not fetch settings from DB (using env fallback):', dbErr.message);
+  }
 
   const geminiKey = settingsMap['GEMINI_API_KEY'] || process.env.GEMINI_API_KEY;
   const geminiModel = settingsMap['GEMINI_MODEL'] || process.env.GEMINI_MODEL || 'gemini-2.0-flash';
